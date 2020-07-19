@@ -21,13 +21,13 @@ private:
 	float sumOfSaltUsed; // tổng lượng muối(mg) bơm vào
 	float sumOfMixingTime; // tổng thời gian trộn để trung hòa bể dinh hưỡng sau khi bơm
 	float inletWaterPerMin; // lượng nước(l) bơm vào trong 1 phút của 1 van điện từ
+	float wattage; // công suất điện của van điện từ (watt)
 	float Kpmax, Kpmin, Kimax, Kimin, Kdmax, Kdmin;
-	float NST[30][4]; // quẩn thể 30 NST cho thuật toán GA
+	float NST[30][5]; // quẩn thể 30 NST cho thuật toán GA
 	float e0, e1, e2; // sai số cho thuật toán incremental PID
-	float maxPumpTime; // thời gian mở van nhiều nhất có thể
-	float electrictPrice;
-	float waterPrice;
-	float saltPrice;
+	float electrictPrice; // giá tiền điện (kWh)
+	float waterPrice; // giá tiền nước (m3)
+	float saltPrice; // giá tiền dinh dưỡng
 
 	int errorStop = 10000;
 
@@ -58,22 +58,22 @@ private:
 	// hàm tăng giá trị EC theo output của PID
 	void getECUp(float output) {
 		// cập nhất giá trị muối và nước sau khi bơm
-		sumOfWater += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * waterIn1LAB * 2;
-		sumOfSalt += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * saltIn1LAB * 2;
+		sumOfWater += output * (inletWaterPerMin / 60) * waterIn1LAB * 2;
+		sumOfSalt += output * (inletWaterPerMin / 60) * saltIn1LAB * 2;
 		// cập nhật tổng thời gian bơm
-		sumOfPumpTime += maxPumpTime * (output / 100);
+		sumOfPumpTime += output;
 		// cập nhật tổng lượng muối và nước sử dụng
-		sumOfWaterUsed += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * waterIn1LAB * 2;
-		sumOfSaltUsed += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * saltIn1LAB * 2;
+		sumOfWaterUsed += output * (inletWaterPerMin / 60) * waterIn1LAB * 2;
+		sumOfSaltUsed += output * (inletWaterPerMin / 60) * saltIn1LAB * 2;
 	}
 	// hàm giảm giá trị EC theo output của PID
 	void getECDown(float output) {
 		// cập nhất giá trị nước sau khi bơm
-		sumOfWater += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * waterIn1LAB;
+		sumOfWater += output * (inletWaterPerMin / 60) * waterIn1LAB;
 		// cập nhật tổng thời gian bơm
-		sumOfPumpTime += maxPumpTime * (output / 100);
+		sumOfPumpTime += output;
 		// cập nhật tổng lượng nước sử dụng
-		sumOfWaterUsed += maxPumpTime * (output / 100) * (inletWaterPerMin / 60) * waterIn1LAB ;
+		sumOfWaterUsed += output * (inletWaterPerMin / 60) * waterIn1LAB ;
 	}
 	// hàm thay đổi giá trị EC theo output của PID
 	void updateEC(float output) {
@@ -105,14 +105,6 @@ private:
 	float compute(int i) {
 		float output;
 		output = NST[i][0] * (e0 - e1) + NST[i][1] * e0 + NST[i][2] * (e0 - 2 * e1 + e2);
-
-		if (output > 100) {
-			output = 100;
-		}
-		else if(output < -100) {
-			output = -100;
-		}
-
 		return output;
 	}
 	// hàm thích nghi
@@ -132,40 +124,66 @@ private:
 			}
 			convergingTime++;
 		}
-		fit = electrictPrice * sumOfPumpTime + waterPrice * sumOfWaterUsed + saltPrice * sumOfSaltUsed + maxExceed * 1 + convergingTime * 1000;
+		fit += countElectrictPrice(sumOfPumpTime);
+		fit += countWaterPrice(sumOfWaterUsed);
+		fit += saltPrice * sumOfSaltUsed + convergingTime * 100;
+		//fit += maxExceed * 1000;
+		if (sumOfWaterUsed < 1500) {
+			int a = sumOfWaterUsed;
+		}
+		NST[i][4] = sumOfWaterUsed;
 		return fit;
 	}
+	// tính tiền điện từ thời gian bơm của máy bơm
+	float countElectrictPrice(float sumOfPumpTime) {
+		float totalUse = (wattage / 1000) * (sumOfPumpTime / 3600);
+		return totalUse * electrictPrice;
+	}
+	// tính tiền nước từ thời gian bơm của máy bơm
+	float countWaterPrice(float sumOfWaterUsed) {
+		return (sumOfWaterUsed / 1000) * waterPrice;
+ 	}
 	// hàm lựa chọn
 	int choose() {
 		float s = 0;
 		float rangeXi[31] = { 0 };
+		float maxi = NST[29][3];
 		for (int i = 0; i < 30; i++) {
+			//s += maxi / NST[i][3];
 			s += NST[i][3];
 		}
-
+		
 		for (int i = 1; i < 31; i++) {
+			//rangeXi[i] = rangeXi[i - 1] + maxi / NST[i - 1][3];
 			rangeXi[i] = rangeXi[i - 1] + NST[i - 1][3];
 		}
 
 		float a = random(0, s);
 		for (int i = 1; i < 31; i++) {
-			if (rangeXi[i - 1] < a && a < rangeXi[i]) {
-				return i;
+			if (rangeXi[i - 1] <= a && a <= rangeXi[i]) {
+				return i - 1;
 			}
 		}
 	}
 	// hàm lai ghép
 	void crossover() {
-		do {
-			int a = choose();
-			int b = choose();
+		int a, b;
+		//do {
+			a = choose();
+			b = choose();
+			/*int a = rand() % 30;
+			int b = rand() % 30;*/
 			NST[28][0] = NST[a][0];
 			NST[28][1] = NST[b][1];
 			NST[28][2] = NST[b][2];
 			NST[29][0] = NST[b][0];
 			NST[29][1] = NST[a][1];
 			NST[29][2] = NST[a][2];
-		} while (checkSame());
+			/*NST[29][0] = (NST[a][0] + NST[b][0]) / 2;
+			NST[29][1] = (NST[a][1] + NST[b][1]) / 2;
+			NST[29][2] = (NST[a][2] + NST[b][2]) / 2;*/
+			
+		//} while (checkSame());
 
 		NST[28][3] = fitness(28);
 		NST[29][3] = fitness(29);
@@ -194,8 +212,11 @@ private:
 			}
 
 			NST[i][k] += 0.5;
-			if (NST[i][k] + 0.5 > max) {
+			if (NST[i][k] > max) {
 				NST[i][k] -= 1;
+			}
+			if (NST[28][0] < 0 || NST[29][0] < 0) {
+			Sort();
 			}
 			NST[i][3] = fitness(i);
 		} while (checkSame());
@@ -222,10 +243,10 @@ private:
 		float rand;
 		for (int i = 0; i < 20; i++) {
 			rand = random(0, 1);
-			if (0 < rand && rand < 0.8) {
+			if (0 <= rand && rand <= 0.6) {
 				crossover();
 			}
-			else if (0.8 < rand && rand < 0.9) {
+			else if (0.6 < rand && rand <= 0.7) {
 				mutation();
 			}
 		}
@@ -252,8 +273,8 @@ public:
 		this->saltIn1LAB = saltIn1LAB;
 	}
 	// hàm set tối đa thời gian bơm
-	void setMaxPumpTime(float maxPumpTime) {
-		this->maxPumpTime = maxPumpTime;
+	void setWattage(float wattage) {
+		this->wattage = wattage;
 	}
 	// hàm set max min của kp, ki, kd
 	void setMaxMinPID(float Kpmax, float Kpmin, float Kimax, float Kimin, float Kdmax, float Kdmin) {
@@ -272,20 +293,20 @@ public:
 	}
 
 	// hàm tính toán GA
-	void start(float ECtarget, float sumOfWater, float sumOfSalt, float inletWaterPerMin, float waterIn1LAB, float saltIn1LAB, float maxPumpTime,
+	void start(float ECtarget, float sumOfWater, float sumOfSalt, float inletWaterPerMin, float wattage, float waterIn1LAB, float saltIn1LAB,
 		float Kpmax, float Kpmin, float Kimax, float Kimin, float Kdmax, float Kdmin, float electrictPrice, float waterPrice, float saltPrice) {
 		setECtarget(ECtarget);
 		setECt(sumOfWater, sumOfSalt);
 		setInletWaterPerMin(inletWaterPerMin);
 		setECAB(waterIn1LAB, saltIn1LAB);
-		setMaxPumpTime(maxPumpTime);
+		setWattage(wattage);
 		setMaxMinPID(Kpmax, Kpmin, Kimax, Kimin, Kdmax, Kdmin);
 		setPrice(electrictPrice, waterPrice, saltPrice);
 		init();
 		print();
 		for (int i = 0; i < 100; i++) {
-			NST[i][2];
 			cout << i << "\n";
+			//cout << NST[0][0] << " " << NST[0][1] << " " << NST[0][2] << " " << NST[0][3] << "\n";
 			update();
 			
 		}
@@ -295,7 +316,8 @@ public:
 	//hàm in quần thể
 	void print() {
 		for (int i = 0; i < 30; i++) {
-			cout << NST[i][0] << " " << NST[i][1] << " " << NST[i][2] << " " << NST[i][3] << "\n";
+			cout << NST[i][0] << " " << NST[i][1] << " " << NST[i][2] << " " << NST[i][3] << " " << NST[i][4] << "\n";
 		}
 	}
+	
 };

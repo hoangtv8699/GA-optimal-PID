@@ -1,10 +1,14 @@
 ﻿  GA.cpp
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(183): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(184): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(187): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(188): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(191): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(192): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(132): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(201): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(202): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(205): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(206): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(209): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(210): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(324): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(325): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(326): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\users\hiddenpants-h\source\repos\ga\ga\ga.cpp(12): warning C4305: 'argument': truncation from 'double' to 'float'
-c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(156): warning C4715: 'GA_PID::choose': not all control paths return a value
+c:\users\hiddenpants-h\source\repos\ga\ga\ga_pid.h(167): warning C4715: 'GA_PID::choose': not all control paths return a value
   GA.vcxproj -> C:\Users\Hiddenpants-H\source\repos\GA\Debug\GA.exe

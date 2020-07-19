@@ -1,4 +1,4 @@
-// GA.cpp : This file contains the 'main' function. Program execution begins and ends there.
+﻿// GA.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
 #include <iostream>
@@ -9,5 +9,7 @@ int main()
 {
 	srand((unsigned)time(0));
 	GA_PID a;
-	a.start(6.0, 5000, 6400000, 30, 1, 12800, 30, 200, 0, 200, 0, 200, 0, 0.00012, 5.6, 0.02);
+	a.start(6.0, 5000, 6400000, 100, 1000, 1, 12800, 100, 0, 100, 0, 100, 0, 2.666, 13.357, 0.02);
+	// giá điện kinh doanh 2.666 VND / kWh
+	// giá nước kinh doanh 13.357 VNG / m3
 }
